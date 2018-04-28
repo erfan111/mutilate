@@ -71,28 +71,29 @@ public:
     for (size_t i = 0; i < length; i++) result += samples[i];
     return result/length;
   }
-
+// =e
   void print_header() {
-      printf("#%-6s %6s %8s %8s %8s %8s %8s %8s\n", "type", "size",
-         "min", "max", "avg", "90th", "95th", "99th");
+      printf("#%-6s %6s %8s %8s %8s %8s %8s %8s %8s %8s\n", "type", "size",
+         "min", "max", "avg", "90th", "95th", "99th", "99.9th", "99.99th");
   }
-
+// =e
   void print_stats(const char *type, const char *size) {
     std::vector<double> samples_copy = samples;
     size_t l = samples_copy.size();
 
     if (l == 0) {
-      printf("%-7s %6s %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f\n", type, size,
-             0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+      printf("%-7s %6s %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f\n", type, size,
+             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
       return;
     }
 
     sort(samples_copy.begin(), samples_copy.end());
 
-    printf("%-7s %6s %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f\n", type, size,
+    printf("%-7s %6s %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f\n", type, size,
            samples_copy[0], samples_copy[l-1], average(),
            samples_copy[(l*90)/100], samples_copy[(l*95)/100],
-           samples_copy[(l*99)/100]);
+           samples_copy[(l*99)/100],samples_copy[(l*99.9)/100],samples_copy[(l*99.99)/100]
+       );
   }
 };
 

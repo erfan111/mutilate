@@ -141,7 +141,7 @@ static bool s_send (zmq::socket_t &socket, const std::string &string) {
  * All clients spawn threads, open connections, load the DB, and wait
  * for all connections to become IDLE.  Following that, they
  * synchronize and finally do the heavy lifting.
- * 
+ *
  * [IF WARMUP] -1:  Master <-> Agent: Synchronize
  * [IF WARMUP]  0:  Everyone: RUN for options.warmup seconds.
  * 1. Master <-> Agent: Synchronize
@@ -242,7 +242,7 @@ void prep_agent(const vector<string>& servers, options_t& options) {
     unsigned int num = *((int *) rep.data());
 
     sum += options.connections * (options.roundrobin ?
-            (servers.size() > num ? servers.size() : num) : 
+            (servers.size() > num ? servers.size() : num) :
             (servers.size() * num));
 
     for (auto i: servers) {
@@ -576,7 +576,7 @@ int main(int argc, char **argv) {
       stats.print_stats("read", stats.get_sampler, false);
       printf(" %8.1f", stats.get_qps());
       printf(" %8d\n", q);
-    }    
+    }
   } else {
     go(servers, options, stats);
   }
@@ -624,7 +624,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  //  if (args.threads_arg > 1) 
+  //  if (args.threads_arg > 1)
     pthread_barrier_destroy(&barrier);
 
 #ifdef HAVE_LIBZMQ
@@ -739,7 +739,7 @@ void go(const vector<string>& servers, options_t& options,
 
     V("Local QPS = %.1f (%d / %.1fs)",
       total / (stats.stop - stats.start),
-      total, stats.stop - stats.start);    
+      total, stats.stop - stats.start);
 
     finish_agent(stats);
   }
@@ -1060,7 +1060,7 @@ void args_to_options(options_t* options) {
 
   options->binary = args.binary_given;
   options->sasl = args.username_given;
-  
+
   if (args.password_given)
     strcpy(options->password, args.password_arg);
   else
@@ -1107,4 +1107,3 @@ void init_random_stuff() {
     cursor += max;
   }
 }
-
