@@ -19,7 +19,8 @@
 /**
  * Create a new connection to a server endpoint.
  */
-Connection::Connection(struct event_base* _base, struct evdns_base* _evdns,
+// =e added id
+Connection::Connection(int id, struct event_base* _base, struct evdns_base* _evdns,
                        string _hostname, string _port, options_t _options,
                        bool sampling) :
   start_time(0), stats(sampling), options(_options),
@@ -28,13 +29,28 @@ Connection::Connection(struct event_base* _base, struct evdns_base* _evdns,
   valuesize = createGenerator(options.valuesize);
   keysize = createGenerator(options.keysize);
   keygen = new KeyGenerator(keysize, options.records);
-
+  cid = id;
   if (options.lambda <= 0) {
     iagen = createGenerator("0");
   } else {
     D("iagen = createGenerator(%s)", options.ia);
     iagen = createGenerator(options.ia);
-    iagen->set_lambda(options.lambda);
+
+    // =e
+    double lamb = options.lambda;
+    double half_lamb = options.lambda/2;
+    if(cid < options.connections/2) {
+        lamb -= (half_lamb/(cid+1));
+        V("Conn %d, lamda=%f, lamb = %f", cid, options.lambda, lamb);
+        iagen->set_lambda(lamb);
+    }
+    else {
+        lamb += (half_lamb/(options.connections - cid));
+        V("Conn %d, lamda=%f, lamb = %f", cid, options.lambda, lamb);
+        iagen->set_lambda(lamb);
+    }
+    // iagen->set_lambda(options.lambda);
+    //
   }
 
   read_state  = INIT_READ;
