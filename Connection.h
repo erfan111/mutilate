@@ -31,10 +31,16 @@ class Protocol;
 
 class Connection {
 public:
-  Connection(struct event_base* _base, struct evdns_base* _evdns,
+  // =e added id
+  Connection(int id, struct event_base* _base, struct evdns_base* _evdns,
              string _hostname, string _port, options_t options,
              bool sampling = true);
+  //
   ~Connection();
+
+  // =e
+  int cid;
+  //
 
   double start_time; // Time when this connection began operations.
   ConnectionStats stats;
