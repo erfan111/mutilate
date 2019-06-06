@@ -99,6 +99,12 @@ private:
   Generator *iagen;
   std::queue<Operation> op_queue;
 
+  // =e   we want to periodically change the interarrival rate
+  int ia_pointer;
+  double last_ia_change;
+  double ia_change_interval;
+  //
+
   // state machine functions / event processing
   void pop_op();
   void finish_op(Operation *op);

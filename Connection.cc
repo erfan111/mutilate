@@ -16,6 +16,14 @@
 #include "binary_protocol.h"
 #include "util.h"
 
+// =e XXX
+
+double ia_table[24] {125.0, 117.18, 136.71, 126.953, 113.28, 101.56, 91.79, 74.21, 89.38, 95.70, 99.60, 82.03
+, 117.18, 125.0, 134.76, 140.62, 142.57, 138.67, 144.53, 142.51, 125.0, 119.14, 115.23, 97.65};
+//
+
+
+
 /**
  * Create a new connection to a server endpoint.
  */
@@ -59,6 +67,12 @@ Connection::Connection(struct event_base* _base, struct evdns_base* _evdns,
   }
 
   timer = evtimer_new(base, timer_cb, this);
+
+  // =e  XXX
+  ia_change_interval = 10.0;
+  last_ia_change = 0;
+  ia_pointer = 0;
+  //
 }
 
 /**
@@ -294,6 +308,16 @@ void Connection::drive_write_machine(double now) {
   struct timeval tv;
 
   if (check_exit_condition(now)) return;
+  // =e
+  if(last_ia_change == 0)
+    last_ia_change = now;
+  if(now - last_ia_change > ia_change_interval) {
+    last_ia_change = now;
+    ia_pointer = (ia_pointer+1) % 24;
+    iagen->set_lambda(ia_table[ia_pointer]);
+    D("iagen = changing rate (%f)", ia_table[ia_pointer]);
+  }
+  //
 
   while (1) {
     switch (write_state) {

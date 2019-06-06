@@ -44,6 +44,9 @@ public:
 
   virtual double generate(double U = -1.0) = 0;
   virtual void set_lambda(double lambda) {DIE("set_lambda() not implemented");}
+  // =e
+  virtual void set_attrs(double _loc, double _scale, double _shape) {DIE("set_attrs() not implemented");};
+  //
 protected:
   std::string type;
 };
@@ -56,6 +59,10 @@ public:
     if (lambda > 0.0) value = 1.0 / lambda;
     else value = 0.0;
   }
+
+  // =e
+  virtual void set_attrs(double _loc, double _scale, double _shape) { return; }
+  //
 
 private:
   double value;
@@ -132,12 +139,21 @@ public:
     return loc + scale * (pow(U, -shape) - 1) / shape;
   }
 
+  // =e
+  virtual void set_attrs(double _loc = 0.0, double _scale = 1.0, double _shape = 1.0) {
+    loc = _loc;
+    scale = _scale;
+    shape = _shape;
+  }
+  //
+
   virtual void set_lambda(double lambda) {
     if (lambda <= 0.0) scale = 0.0;
     else scale = (1 - shape) / lambda - (1 - shape) * loc;
   }
-
-private:
+// =e
+//private:
+//
   double loc /* mu */;
   double scale /* sigma */, shape /* k */;
 };
