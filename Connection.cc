@@ -72,6 +72,7 @@ Connection::Connection(struct event_base* _base, struct evdns_base* _evdns,
   ia_change_interval = 10.0;
   last_ia_change = 0;
   ia_pointer = 0;
+  request_uid = 2;
   //
 }
 
@@ -172,9 +173,16 @@ void Connection::issue_get(const char* key, double now) {
   op.key = string(key);
   op.type = Operation::GET;
   op_queue.push(op);
+  // =e
+  request_times[request_uid] = op.start_time;
+  //printf("id %u start is %f\n", request_uid, request_times[request_uid]);
+  //
 
   if (read_state == IDLE) read_state = WAITING_FOR_GET;
-  l = prot->get_request(key);
+  // =e 
+  l = prot->get_request(key, request_uid);
+  request_uid++;
+  //
   if (read_state != LOADING) stats.tx_bytes += l;
 }
 
@@ -195,9 +203,15 @@ void Connection::issue_set(const char* key, const char* value, int length,
 
   op.type = Operation::SET;
   op_queue.push(op);
+  // =e
+  request_times[request_uid] = op.start_time;
+  request_uid++;
+  //
 
   if (read_state == IDLE) read_state = WAITING_FOR_SET;
-  l = prot->set_request(key, value, length);
+  // =e 
+  l = prot->set_request(key, value, length, request_uid);
+  //
   if (read_state != LOADING) stats.tx_bytes += l;
 }
 
@@ -227,7 +241,8 @@ void Connection::pop_op() {
  * Finish up (record stats) an operation that just returned from the
  * server.
  */
-void Connection::finish_op(Operation *op) {
+// =e
+void Connection::finish_op(Operation *op, uint32_t id) {
   double now;
 #if USE_CACHED_TIME
   struct timeval now_tv;
@@ -241,6 +256,14 @@ void Connection::finish_op(Operation *op) {
 #else
   op->end_time = now;
 #endif
+  // =e
+  if(id > 1){
+    //printf("id %u %f %f\n", id, op->start_time, request_times[id]);
+    op->start_time = request_times[id];
+  }
+  //
+    
+
 
   switch (op->type) {
   case Operation::GET: stats.log_get(*op); break;
@@ -392,7 +415,10 @@ void Connection::read_callback() {
   struct evbuffer *input = bufferevent_get_input(bev);
 
   Operation *op = NULL;
-  bool done, full_read;
+  bool done;//, full_read;
+  // =e
+  uint32_t rid;
+  //
 
   if (op_queue.size() == 0) V("Spurious read callback.");
 
@@ -405,18 +431,24 @@ void Connection::read_callback() {
 
     case WAITING_FOR_GET:
       assert(op_queue.size() > 0);
-      full_read = prot->handle_response(input, done);
-      if (!full_read) {
+      // =e
+      rid = prot->handle_response(input, done);
+      
+      if (!rid) {
+        //
         return;
       } else if (done) {
-        finish_op(op); // sets read_state = IDLE
+        finish_op(op, rid); // sets read_state = IDLE
       }
       break;
 
     case WAITING_FOR_SET:
       assert(op_queue.size() > 0);
-      if (!prot->handle_response(input, done)) return;
-      finish_op(op);
+      // =e
+      rid = prot->handle_response(input, done);
+      if (!rid) return;
+      //
+      finish_op(op, rid);
       break;
 
     case LOADING:

@@ -3,6 +3,9 @@
 #define CONNECTION_H
 
 #include <queue>
+// =e
+#include <map>
+//
 #include <string>
 
 #include <event2/bufferevent.h>
@@ -103,11 +106,15 @@ private:
   int ia_pointer;
   double last_ia_change;
   double ia_change_interval;
+  uint32_t request_uid;
+  std::map<uint32_t, double> request_times;
   //
 
   // state machine functions / event processing
   void pop_op();
-  void finish_op(Operation *op);
+  // =e
+  void finish_op(Operation *op, uint32_t id);
+  //
   void issue_something(double now = 0.0);
   void drive_write_machine(double now = 0.0);
 

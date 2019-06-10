@@ -22,7 +22,8 @@
 /**
  * Send an ascii get request.
  */
-int ProtocolAscii::get_request(const char* key) {
+// =e add id
+int ProtocolAscii::get_request(const char* key, uint32_t id) {
   int l;
   l = evbuffer_add_printf(
     bufferevent_get_output(bev), "get %s\r\n", key);
@@ -33,7 +34,8 @@ int ProtocolAscii::get_request(const char* key) {
 /**
  * Send an ascii set request.
  */
-int ProtocolAscii::set_request(const char* key, const char* value, int len) {
+// =e add id
+int ProtocolAscii::set_request(const char* key, const char* value, int len, uint32_t id) {
   int l;
   l = evbuffer_add_printf(bufferevent_get_output(bev),
                           "set %s 0 0 %d\r\n", key, len);
@@ -47,7 +49,8 @@ int ProtocolAscii::set_request(const char* key, const char* value, int len) {
 /**
  * Handle an ascii response.
  */
-bool ProtocolAscii::handle_response(evbuffer *input, bool &done) {
+// =e was bool
+uint32_t ProtocolAscii::handle_response(evbuffer *input, bool &done) {
   char *buf = NULL;
   int len;
   size_t n_read_out;
@@ -57,7 +60,7 @@ bool ProtocolAscii::handle_response(evbuffer *input, bool &done) {
   case WAITING_FOR_GET:
   case WAITING_FOR_END:
     buf = evbuffer_readln(input, &n_read_out, EVBUFFER_EOL_CRLF);
-    if (buf == NULL) return false;
+    if (buf == NULL) return 0;
 
     conn->stats.rx_bytes += n_read_out;
 
@@ -80,7 +83,7 @@ bool ProtocolAscii::handle_response(evbuffer *input, bool &done) {
       done = false;
     }
     free(buf);
-    return true;
+    return 1;
 
   case WAITING_FOR_GET_DATA:
     len = evbuffer_get_length(input);
@@ -89,9 +92,9 @@ bool ProtocolAscii::handle_response(evbuffer *input, bool &done) {
       read_state = WAITING_FOR_END;
       conn->stats.rx_bytes += data_length + 2;
       done = false;
-      return true;
+      return 1;
     }
-    return false;
+    return 0;
 
   default: printf("state: %d\n", read_state); DIE("Unimplemented!");
   }
@@ -133,29 +136,34 @@ bool ProtocolBinary::setup_connection_r(evbuffer* input) {
 /**
  * Send a binary get request.
  */
-int ProtocolBinary::get_request(const char* key) {
+int ProtocolBinary::get_request(const char* key, uint32_t id) {
   uint16_t keylen = strlen(key);
 
   // each line is 4-bytes
+  // =e adding opaque value (id)
   binary_header_t h = { 0x80, CMD_GET, htons(keylen),
                         0x00, 0x00, {htons(0)},
-                        htonl(keylen) };
+                        htonl(keylen), htonl(id) };
 
   bufferevent_write(bev, &h, 24); // size does not include extras
   bufferevent_write(bev, key, keylen);
+  // =e
+  //printf("sending id = %u\n", id);
+  //
   return 24 + keylen;
 }
 
 /**
  * Send a binary set request.
  */
-int ProtocolBinary::set_request(const char* key, const char* value, int len) {
+int ProtocolBinary::set_request(const char* key, const char* value, int len, uint32_t id) {
   uint16_t keylen = strlen(key);
 
   // each line is 4-bytes
+  // =e aading opaque value (id)
   binary_header_t h = { 0x80, CMD_SET, htons(keylen),
                         0x08, 0x00, {htons(0)},
-                        htonl(keylen + 8 + len) };
+                        htonl(keylen + 8 + len), htonl(id) };
 
   bufferevent_write(bev, &h, 32); // With extras
   bufferevent_write(bev, key, keylen);
@@ -169,17 +177,18 @@ int ProtocolBinary::set_request(const char* key, const char* value, int len) {
  * @param input evBuffer to read response from
  * @return  true if consumed, false if not enough data in buffer.
  */
-bool ProtocolBinary::handle_response(evbuffer *input, bool &done) {
+// =e was bool
+uint32_t ProtocolBinary::handle_response(evbuffer *input, bool &done) {
   // Read the first 24 bytes as a header
   int length = evbuffer_get_length(input);
-  if (length < 24) return false;
+  if (length < 24) return 0;
   binary_header_t* h =
           reinterpret_cast<binary_header_t*>(evbuffer_pullup(input, 24));
   assert(h);
 
   // Not whole response
   int targetLen = 24 + ntohl(h->body_len);
-  if (length < targetLen) return false;
+  if (length < targetLen) return 0;
 
   // If something other than success, count it as a miss
   if (h->opcode == CMD_GET && h->status) {
@@ -197,6 +206,9 @@ bool ProtocolBinary::handle_response(evbuffer *input, bool &done) {
   evbuffer_drain(input, targetLen);
   conn->stats.rx_bytes += targetLen;
   done = true;
-  return true;
+  // =e
+  //printf("receiving id = %u\n", ntohl(h->opaque));
+  //
+  return ntohl(h->opaque);
 }
 

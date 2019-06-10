@@ -18,9 +18,12 @@ public:
 
   virtual bool setup_connection_w() = 0;
   virtual bool setup_connection_r(evbuffer* input) = 0;
-  virtual int  get_request(const char* key) = 0;
-  virtual int  set_request(const char* key, const char* value, int len) = 0;
-  virtual bool handle_response(evbuffer* input, bool &done) = 0;
+  // =e
+  virtual int  get_request(const char* key, uint32_t id) = 0;
+  virtual int  set_request(const char* key, const char* value, int len, uint32_t id) = 0;
+  virtual uint32_t handle_response(evbuffer* input, bool &done) = 0;
+  //virtual bool handle_response(evbuffer* input, bool &done) = 0;
+  //
 
 protected:
   options_t    opts;
@@ -39,9 +42,12 @@ public:
 
   virtual bool setup_connection_w() { return true; }
   virtual bool setup_connection_r(evbuffer* input) { return true; }
-  virtual int  get_request(const char* key);
-  virtual int  set_request(const char* key, const char* value, int len);
-  virtual bool handle_response(evbuffer* input, bool &done);
+  // =e
+  virtual int  get_request(const char* key, uint32_t id);
+  virtual int  set_request(const char* key, const char* value, int len, uint32_t id);
+  //virtual bool handle_response(evbuffer* input, bool &done);
+  virtual uint32_t handle_response(evbuffer* input, bool &done);
+  //
 
 private:
   enum read_fsm {
@@ -63,9 +69,12 @@ public:
 
   virtual bool setup_connection_w();
   virtual bool setup_connection_r(evbuffer* input);
-  virtual int  get_request(const char* key);
-  virtual int  set_request(const char* key, const char* value, int len);
-  virtual bool handle_response(evbuffer* input, bool &done);
+  virtual int  get_request(const char* key, uint32_t id);
+  virtual int  set_request(const char* key, const char* value, int len, uint32_t id);
+  // =e
+  //virtual bool handle_response(evbuffer* input, bool &done);
+  virtual uint32_t handle_response(evbuffer* input, bool &done);
+  //
 };
 
 #endif
