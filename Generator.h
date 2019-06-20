@@ -148,8 +148,10 @@ public:
   //
 
   virtual void set_lambda(double lambda) {
+    //D("gpar lambda %f", lambda);
     if (lambda <= 0.0) scale = 0.0;
     else scale = (1 - shape) / lambda - (1 - shape) * loc;
+    D("gpar lambda %f scale %f", lambda, scale);
   }
 // =e
 //private:

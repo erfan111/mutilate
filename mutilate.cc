@@ -1050,8 +1050,8 @@ void args_to_options(options_t* options) {
 
   options->lambda = (double) options->qps / (double) options->lambda_denom * args.lambda_mul_arg;
 
-  //  V("%d %d %d %f", options->qps, options->connections,
-  //  connections, options->lambda);
+  V("%d %d %d %f", options->qps, options->connections,
+    connections, options->lambda);
 
   //  if (args.no_record_scale_given)
   //    options->records = args.records_arg;
@@ -1087,6 +1087,9 @@ void args_to_options(options_t* options) {
   options->iadist = get_distribution(args.iadist_arg);
   strcpy(options->ia, args.iadist_arg);
   options->warmup = args.warmup_given ? args.warmup_arg : 0;
+  // =e
+  options->diurnal = args.diurnal_given ? args.diurnal_arg : 0;
+  //
   options->oob_thread = false;
   options->skip = args.skip_given;
   options->moderate = args.moderate_given;

@@ -42,6 +42,10 @@ typedef struct {
   bool oob_thread;
 
   bool moderate;
+
+  // =e
+  int diurnal;
+  //
 } options_t;
 
 #endif // CONNECTIONOPTIONS_H

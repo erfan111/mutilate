@@ -105,7 +105,6 @@ private:
   // =e   we want to periodically change the interarrival rate
   int ia_pointer;
   double last_ia_change;
-  double ia_change_interval;
   uint32_t request_uid;
   std::map<uint32_t, double> request_times;
   //
