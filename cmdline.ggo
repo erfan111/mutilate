@@ -29,6 +29,7 @@ option "update" u "Ratio of set:get commands." float default="0.0"
 
 text "\nAdvanced options:"
 
+option "facebook_diurnal" f "Change rate according to facebook's paper every x secs" int
 option "username" U "Username to use for SASL authentication." string
 option "password" P "Password to use for SASL authentication." string
 option "threads" T "Number of threads to spawn." int default="1"
