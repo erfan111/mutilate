@@ -17,18 +17,21 @@
 #include "util.h"
 
 // =e XXX
-
+// This table represents a non real load which decays from 1M RPS to 20k RPS
+// range: [50000 : 1M] rps
+// use this table with -f flag and -i exponential:1000000
+double decaying_table[24]{1953, 1855, 1757, 1660, 1562, 1464, 1367, 1269, 1171, 1171, 1074, 976.5, 878, 780, 683, 683,  586, 489, 392, 295, 199, 97.65, 80, 60};
 // This table represents the facebook's ETC diurnal pattern
 // range: [38000 : 73000] rps
 // use this table with -f flag and -i fb_ia
 double ia_table[24]{125.0, 117.18, 136.71, 126.953, 113.28, 101.56, 91.79, 74.21, 89.38, 95.70, 99.60, 82.03, 117.18, 125.0, 134.76, 140.62, 142.57, 138.67, 144.53, 142.51, 125.0, 119.14, 115.23, 97.65};
 // This table represents Microsoft's trace with exponential interarrivals in Swaroop Kavalanekar's paper
 // range: [33000 : 100000]
-// use this table with -f flag and -i exponential
+// use this table with -f flag and -i exponential:90000
 double microsoft_table[24]{191.40, 195.31, 175.78, 146.48, 132.81, 126.95, 121.09, 126.95, 107.42, 87.89, 78.12, 70.31, 64.45, 70.31, 72.26, 74.21, 82.03, 89.84, 107.42, 97.65, 82.03, 80.07, 78.12, 74.21};
 // This table represents NLANR's trace with exponential interarrivals in Swaroop Kavalanekar's paper
 // range: [73000 : 99000]
-// use this table with -f flag and -i exponential
+// use this table with -f flag and -i exponential:90000
 double nlanr_table[24] {146.48, 144.53, 142.57, 148.43, 160.15, 171.87, 177.73, 185.54, 181.64, 175.78, 183.59, 181.64, 179.68, 175.78, 181.64, 185.54, 193.35,185.54, 173.82, 171.87, 169.92, 166.01, 162.10};
 //double scales[24]{16.2868, 15.8937, 15.6345, 15.7003, 16.3231, 17.5157, 18.6748, 19.5114, 20.2050, 20.2915, 19.5577, 18.2294, 16.2159, 15.6716, 15.2904, 15.2033, 14.9533, 15.1381, 15.3210, 15.3848, 15.7502, 16.0205, 16.3238};
 //double shapes[24]{0.155280, 0.141368, 0.137579, 0.142382, 0.160706, 0.181278, 0.196885, 0.202396, 0.201637, 0.193764, 0.178386, 0.161636, 0.140461, 0.119242, 0.104535, 0.094286, 0.096963, 0.098510, 0.096155, 0.094156, 0.100365, 0.111921, 0.131946, 0.147258};
@@ -408,7 +411,7 @@ void Connection::drive_write_machine(double now)
     {
       last_ia_change = now;
       ia_pointer = (ia_pointer + 1) % 24;
-      double new_lambda = microsoft_table[ia_pointer];  // =e change table name here
+      double new_lambda = decaying_table[ia_pointer];  // =e change table name here
       iagen->set_lambda(new_lambda);
       //iagen->set_attrs(0.0, scales[ia_pointer], shapes[ia_pointer]);
       D("iagen = changing rate to (%f)", new_lambda*512);
