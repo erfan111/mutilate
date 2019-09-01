@@ -312,19 +312,23 @@ void Connection::finish_op(Operation *op, uint32_t id)
     //printf("id %u %f %f\n", id, op->start_time, request_times[id]);
     op->start_time = request_times[id];
   }
-  //
-
-  switch (op->type)
-  {
-  case Operation::GET:
-    stats.log_get(*op);
-    break;
-  case Operation::SET:
-    stats.log_set(*op);
-    break;
-  default:
-    DIE("Not implemented.");
+  sampler++;
+  if(sampler >= 100){
+    sampler = 0;
+    switch (op->type)
+    {
+    case Operation::GET:
+      stats.log_get(*op);
+      break;
+    case Operation::SET:
+      stats.log_set(*op);
+      break;
+    default:
+      DIE("Not implemented.");
+    }
   }
+
+  //
 
   last_rx = now;
   pop_op();

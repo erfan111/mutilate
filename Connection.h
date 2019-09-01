@@ -107,6 +107,7 @@ private:
   double last_ia_change;
   uint32_t request_uid;
   std::map<uint32_t, double> request_times;
+  int sampler = 0;
   //
 
   // state machine functions / event processing
