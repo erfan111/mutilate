@@ -329,10 +329,10 @@ void Connection::finish_op(Operation *op, uint32_t id)
     switch (op->type)
     {
     case Operation::GET:
-      stats.log_get(*op);
+      stats.log_get(*op, sampler);
       break;
     case Operation::SET:
-      stats.log_set(*op);
+      stats.log_set(*op, sampler);
       break;
     default:
       DIE("Not implemented.");

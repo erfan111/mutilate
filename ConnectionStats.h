@@ -52,9 +52,11 @@ class ConnectionStats {
   double start, stop;
 
   bool sampling;
-
-  void log_get(Operation& op) { if (sampling) get_sampler.sample(op); gets++; }
-  void log_set(Operation& op) { if (sampling) set_sampler.sample(op); sets++; }
+  
+  // =e
+  void log_get(Operation& op, int sampler) { if (sampling || sampler) get_sampler.sample(op); gets++; }
+  void log_set(Operation& op, int sampler) { if (sampling || sampler) set_sampler.sample(op); sets++; }
+  //
   void log_op (double op)     { if (sampling)  op_sampler.sample(op); }
 
   double get_qps() {
