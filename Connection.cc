@@ -20,7 +20,18 @@
 // This table represents a non real load which decays from 1M RPS to 20k RPS
 // range: [50000 : 1M] rps
 // use this table with -f flag and -i exponential:1000000
-double decaying_table[24]{1953, 1855, 1757, 1660, 1562, 1464, 1367, 1269, 1171, 1171, 1074, 976.5, 878, 780, 683, 683,  586, 489, 392, 295, 199, 97.65, 80, 60};
+double decaying_table[24]{1800, 1800, 1757, 1660, 1562, 1464, 1367, 1269, 1171, 1171, 1074, 976.5, 878, 780, 683, 683,  586, 489, 392, 295, 199, 97.65, 80, 80};
+
+//double decaying_table[24]{1000, 900, 800, 700, 600, 550, 500, 450, 400, 350, 300, 250, 200, 150, 100, 80, 60, 40, 30, 20, 10, 5, 5, 5};
+//double decaying_table[24]{1000, 1000, 900, 900, 800, 800, 700, 700, 600, 600, 500, 500, 400, 400, 300, 300, 200, 200, 100, 100, 50, 50, 50, 50};
+
+
+
+
+//showan
+//double decaying_table[24]{1600, 1600, 1600, 1400, 1200, 1000, 800, 600, 400, 200, 50, 50, 200, 400, 600, 800,  1000, 1200, 1400, 1500, 1500,1600, 1600,1600};
+
+
 // This table represents the facebook's ETC diurnal pattern
 // range: [38000 : 73000] rps
 // use this table with -f flag and -i fb_ia
@@ -411,10 +422,10 @@ void Connection::drive_write_machine(double now)
     {
       last_ia_change = now;
       ia_pointer = (ia_pointer + 1) % 24;
-      double new_lambda = decaying_table[ia_pointer];  // =e change table name here
+      double new_lambda = decaying_table[ia_pointer]*7;  // =e change table name here
       iagen->set_lambda(new_lambda);
       //iagen->set_attrs(0.0, scales[ia_pointer], shapes[ia_pointer]);
-      D("iagen = changing rate to (%f)", new_lambda*512);
+      D("iagen = changing rate to (%f)", new_lambda*512*7);
     }
   }
   //
