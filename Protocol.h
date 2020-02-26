@@ -68,4 +68,33 @@ public:
   virtual bool handle_response(evbuffer* input, bool &done);
 };
 
+
+// =e
+class ProtocolTCPEcho : public Protocol {
+public:
+  ProtocolTCPEcho(options_t opts, Connection* conn, bufferevent* bev):
+    Protocol(opts, conn, bev) {
+      read_state = IDLE;
+    };
+  ~ProtocolTCPEcho() {};
+
+  virtual bool setup_connection_w() { return true; }
+  virtual bool setup_connection_r(evbuffer* input) { return true; }
+  virtual int  get_request(const char* key);
+  virtual int  set_request(const char* key, const char* value, int len) { return true; };
+  virtual bool handle_response(evbuffer* input, bool &done);
+
+private:
+  enum read_fsm {
+    IDLE,
+    WAITING_FOR_GET,
+    WAITING_FOR_GET_DATA,
+    WAITING_FOR_END,
+  };
+
+  read_fsm read_state;
+  int data_length;
+};
+//
+
 #endif

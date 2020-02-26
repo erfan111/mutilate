@@ -37,19 +37,19 @@ Connection::Connection(int id, struct event_base* _base, struct evdns_base* _evd
     iagen = createGenerator(options.ia);
 
     // =e
-    double lamb = options.lambda;
-    double half_lamb = options.lambda/2;
-    if(cid < options.connections/2) {
-        lamb -= (half_lamb/(cid+1));
-        V("Conn %d, lamda=%f, lamb = %f", cid, options.lambda, lamb);
-        iagen->set_lambda(lamb);
-    }
-    else {
-        lamb += (half_lamb/(options.connections - cid));
-        V("Conn %d, lamda=%f, lamb = %f", cid, options.lambda, lamb);
-        iagen->set_lambda(lamb);
-    }
-    // iagen->set_lambda(options.lambda);
+    // double lamb = options.lambda;
+    // double half_lamb = options.lambda/2;
+    // if(cid < options.connections/2) {
+    //     lamb -= (half_lamb/(cid+1));
+    //     V("Conn %d, lamda=%f, lamb = %f", cid, options.lambda, lamb);
+    //     iagen->set_lambda(lamb);
+    // }
+    // else {
+    //     lamb += (half_lamb/(options.connections - cid));
+    //     V("Conn %d, lamda=%f, lamb = %f", cid, options.lambda, lamb);
+    //     iagen->set_lambda(lamb);
+    // }
+    iagen->set_lambda(options.lambda);
     //
   }
 
@@ -61,12 +61,20 @@ Connection::Connection(int id, struct event_base* _base, struct evdns_base* _evd
   bev = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
   bufferevent_setcb(bev, bev_read_cb, bev_write_cb, bev_event_cb, this);
   bufferevent_enable(bev, EV_READ | EV_WRITE);
-
-  if (options.binary) {
-    prot = new ProtocolBinary(options, this, bev);
-  } else {
-    prot = new ProtocolAscii(options, this, bev);
+  
+  // =e
+  if(options.tcp)
+  {
+    prot = new ProtocolTCPEcho(options, this, bev);
   }
+  else {
+    if (options.binary) {
+      prot = new ProtocolBinary(options, this, bev);
+    } else {
+      prot = new ProtocolAscii(options, this, bev);
+    }
+  }
+  //
 
   if (bufferevent_socket_connect_hostname(bev, evdns, AF_UNSPEC,
                                           hostname.c_str(),
@@ -136,6 +144,13 @@ void Connection::start_loading() {
  */
 void Connection::issue_something(double now) {
   char key[256];
+  // =e
+  if (options.tcp)
+  {
+    issue_tcp(now);
+    return;
+  }
+  //
   // FIXME: generate key distribution here!
   string keystr = keygen->generate(lrand48() % options.records);
   strcpy(key, keystr.c_str());
@@ -146,6 +161,41 @@ void Connection::issue_something(double now) {
   } else {
     issue_get(key, now);
   }
+}
+
+/**
+ * =e
+ * Issue a TCP echo request to the server.
+ */
+void Connection::issue_tcp(double now) {
+  Operation op;
+  int l;
+  char key[150] = "key";
+  D("Issuing TCP echo");
+
+#if HAVE_CLOCK_GETTIME
+  op.start_time = get_time_accurate();
+#else
+  if (now == 0.0) {
+#if USE_CACHED_TIME
+    struct timeval now_tv;
+    event_base_gettimeofday_cached(base, &now_tv);
+    op.start_time = tv_to_double(&now_tv);
+#else
+    op.start_time = get_time();
+#endif
+  } else {
+    op.start_time = now;
+  }
+#endif
+
+  op.key = string(key);
+  op.type = Operation::TCP;
+  op_queue.push(op);
+
+  if (read_state == IDLE) read_state = WAITING_FOR_GET;
+  l = prot->get_request(key);
+  if (read_state != LOADING) stats.tx_bytes += l;
 }
 
 /**
@@ -220,6 +270,7 @@ void Connection::pop_op() {
     switch (op.type) {
     case Operation::GET: read_state = WAITING_FOR_GET; break;
     case Operation::SET: read_state = WAITING_FOR_SET; break;
+    case Operation::TCP: read_state = WAITING_FOR_GET; break;
     default: DIE("Not implemented.");
     }
   }
@@ -247,6 +298,7 @@ void Connection::finish_op(Operation *op) {
   switch (op->type) {
   case Operation::GET: stats.log_get(*op); break;
   case Operation::SET: stats.log_set(*op); break;
+  case Operation::TCP: stats.log_get(*op); break; // TODO: later change it to tcp specific
   default: DIE("Not implemented.");
   }
 
@@ -319,6 +371,7 @@ void Connection::drive_write_machine(double now) {
       double_to_tv(delay, &tv);
       evtimer_add(timer, &tv);
       write_state = WAITING_FOR_TIME;
+      D("in INIT_WRITE, changed to wait for time");
       break;
 
     case ISSUING:
@@ -356,6 +409,7 @@ void Connection::drive_write_machine(double now) {
       break;
 
     case WAITING_FOR_TIME:
+      // D("in  wait for time");
       if (now < next_time) {
         if (!event_pending(timer, EV_TIMEOUT, NULL)) {
           delay = next_time - now;
@@ -364,10 +418,12 @@ void Connection::drive_write_machine(double now) {
         }
         return;
       }
+      // D("FFFFFFFF");
       write_state = ISSUING;
       break;
 
     case WAITING_FOR_OPQ:
+      // D("in wait for OPQ");
       if (op_queue.size() >= (size_t) options.depth) return;
       write_state = ISSUING;
       break;

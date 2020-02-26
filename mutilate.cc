@@ -436,6 +436,8 @@ int main(int argc, char **argv) {
   if (!args.server_given && !args.agentmode_given)
     DIE("--server or --agentmode must be specified.");
 
+
+
   // TODO: Discover peers, share arguments.
 
   init_random_stuff();
@@ -556,9 +558,9 @@ int main(int argc, char **argv) {
     int max = atoi(max_ptr);
     int step = atoi(step_ptr);
 
-    printf("%-7s %7s %7s %7s %7s %7s %7s %7s %7s %8s %8s\n",
+    printf("%-7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %8s %8s\n",
            "#type", "avg", "min", "1st", "5th", "10th",
-           "90th", "95th", "99th", "QPS", "target");
+           "90th", "95th", "99th", "99.9th", "99.99th", "QPS", "target");
 
     for (int q = min; q <= max; q += step) {
       args_to_options(&options);
@@ -1092,6 +1094,15 @@ void args_to_options(options_t* options) {
   options->oob_thread = false;
   options->skip = args.skip_given;
   options->moderate = args.moderate_given;
+
+  // =e
+  options->tcp = false;
+  if (string(args.mode_arg) == "tcp")
+  {
+    options->noload = true;
+    options->tcp = true;
+  }
+  //
 }
 
 void init_random_stuff() {

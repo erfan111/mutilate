@@ -113,6 +113,7 @@ private:
 
   // request functions
   void issue_sasl();
+  void issue_tcp(double now = 0.0);
   void issue_get(const char* key, double now = 0.0);
   void issue_set(const char* key, const char* value, int length,
                  double now = 0.0);

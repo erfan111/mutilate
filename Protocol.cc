@@ -200,3 +200,47 @@ bool ProtocolBinary::handle_response(evbuffer *input, bool &done) {
   return true;
 }
 
+// =e
+
+// /**
+//  * Setup plain TCP connection
+//  */
+// bool ProtocolTCPEcho::setup_connection_r(evbuffer* input) {
+//   bool b;
+//   return handle_response(input, b);
+// }
+
+/**
+ * Send a tcp echo request.
+ */
+int ProtocolTCPEcho::get_request(const char* key) {
+  int l;
+  l = evbuffer_add_printf(
+    bufferevent_get_output(bev), "JSecret!0000000000%s\r\n", key);
+  if (read_state == IDLE) read_state = WAITING_FOR_GET;
+  D("Sending tcp get! sent=%d", l);
+  return l;
+}
+
+
+/**
+ * Tries to consume a TCP echo response (in its entirety) from an evbuffer.
+ *
+ * @param input evBuffer to read response from
+ * @return  true if consumed, false if not enough data in buffer.
+ */
+bool ProtocolTCPEcho::handle_response(evbuffer *input, bool &done) {
+  char *buf = NULL;
+  size_t n_read_out;
+
+  buf = evbuffer_readln(input, &n_read_out, EVBUFFER_EOL_CRLF);
+  if (buf == NULL) return false;
+
+  conn->stats.rx_bytes += n_read_out;
+
+  if (!strncmp(buf, "JSecret!", 8))
+    done = true;
+  return true;
+}
+//
+
