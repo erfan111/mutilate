@@ -216,7 +216,7 @@ bool ProtocolBinary::handle_response(evbuffer *input, bool &done) {
 int ProtocolTCPEcho::get_request(const char* key) {
   int l;
   l = evbuffer_add_printf(
-    bufferevent_get_output(bev), "JSecret!0000000000%s\r\n", key);
+    bufferevent_get_output(bev), "JSecret!0000000000%s\n", key);
   if (read_state == IDLE) read_state = WAITING_FOR_GET;
   D("Sending tcp get! sent=%d", l);
   return l;
@@ -234,6 +234,7 @@ bool ProtocolTCPEcho::handle_response(evbuffer *input, bool &done) {
   size_t n_read_out;
 
   buf = evbuffer_readln(input, &n_read_out, EVBUFFER_EOL_CRLF);
+  D("received data %d", n_read_out);
   if (buf == NULL) return false;
 
   conn->stats.rx_bytes += n_read_out;

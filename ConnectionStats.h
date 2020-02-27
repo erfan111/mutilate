@@ -53,7 +53,7 @@ class ConnectionStats {
 
   bool sampling;
 
-  void log_get(Operation& op) { if (sampling) get_sampler.sample(op); D("dddddd"); gets++; }
+  void log_get(Operation& op) { if (sampling) get_sampler.sample(op); gets++; }
   void log_set(Operation& op) { if (sampling) set_sampler.sample(op); sets++; }
   void log_tcp(Operation& op) { if (sampling) get_sampler.sample(op); gets++; } // =e TODO: add tcp sampler later
   void log_op (double op)     { if (sampling)  op_sampler.sample(op); }

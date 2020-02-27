@@ -313,7 +313,7 @@ void Connection::finish_op(Operation *op) {
 bool Connection::check_exit_condition(double now) {
   if (read_state == INIT_READ) return false;
   if (now == 0.0) now = get_time();
-  if (now > start_time + options.time) return true;
+  if (now > start_time + options.time) { D("exitting!"); return true;}
   if (options.loadonly && read_state == IDLE) return true;
   return false;
 }
@@ -375,6 +375,7 @@ void Connection::drive_write_machine(double now) {
       break;
 
     case ISSUING:
+      D("issuuing");
       if (op_queue.size() >= (size_t) options.depth) {
         write_state = WAITING_FOR_OPQ;
         return;
@@ -409,7 +410,7 @@ void Connection::drive_write_machine(double now) {
       break;
 
     case WAITING_FOR_TIME:
-      // D("in  wait for time");
+      D("in  wait for time");
       if (now < next_time) {
         if (!event_pending(timer, EV_TIMEOUT, NULL)) {
           delay = next_time - now;
@@ -418,12 +419,12 @@ void Connection::drive_write_machine(double now) {
         }
         return;
       }
-      // D("FFFFFFFF");
+      D("FFFFFFFF");
       write_state = ISSUING;
       break;
 
     case WAITING_FOR_OPQ:
-      // D("in wait for OPQ");
+      D("in wait for OPQ");
       if (op_queue.size() >= (size_t) options.depth) return;
       write_state = ISSUING;
       break;
@@ -455,6 +456,7 @@ void Connection::read_callback() {
       assert(op_queue.size() > 0);
       full_read = prot->handle_response(input, done);
       if (!full_read) {
+        D("not a full read!");
         return;
       } else if (done) {
         finish_op(op); // sets read_state = IDLE
