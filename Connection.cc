@@ -37,19 +37,19 @@ Connection::Connection(int id, struct event_base* _base, struct evdns_base* _evd
     iagen = createGenerator(options.ia);
 
     // =e
-    double lamb = options.lambda;
-    double half_lamb = options.lambda/2;
-    if(cid < options.connections/2) {
-        lamb -= (half_lamb/(cid+1));
-        V("Conn %d, lamda=%f, lamb = %f", cid, options.lambda, lamb);
-        iagen->set_lambda(lamb);
-    }
-    else {
-        lamb += (half_lamb/(options.connections - cid));
-        V("Conn %d, lamda=%f, lamb = %f", cid, options.lambda, lamb);
-        iagen->set_lambda(lamb);
-    }
-    // iagen->set_lambda(options.lambda);
+    // double lamb = options.lambda;
+    // double half_lamb = options.lambda/2;
+    // if(cid < options.connections/2) {
+    //     lamb -= (half_lamb/(cid+1));
+    //     V("Conn %d, lamda=%f, lamb = %f", cid, options.lambda, lamb);
+    //     iagen->set_lambda(lamb);
+    // }
+    // else {
+    //     lamb += (half_lamb/(options.connections - cid));
+    //     V("Conn %d, lamda=%f, lamb = %f", cid, options.lambda, lamb);
+    //     iagen->set_lambda(lamb);
+    // }
+    iagen->set_lambda(options.lambda);
     //
   }
 

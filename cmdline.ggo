@@ -1,5 +1,5 @@
 package "mutilate"
-version "0.1"
+version "0.2"
 usage "mutilate -s server[:port] [options]"
 description "\"High-performance\" memcached benchmarking tool"
 
@@ -61,6 +61,8 @@ option "search" - "Search for the QPS where N-order statistic < Xus.  \
 faster than 1000us)." string typestr="N:X"
 option "scan" - "Scan latency across QPS rates from min to max."
        string typestr="min:max:step"
+option "trace" - "Read a trace CSV file for dynamic rate and connection adjustments"
+       string
 
 text "\nAgent-mode options:"
 option "agentmode" A "Run client in agent mode."

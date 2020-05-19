@@ -37,6 +37,7 @@
 #include "log.h"
 #include "mutilate.h"
 #include "util.h"
+#include "csv.h"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 
@@ -544,6 +545,13 @@ int main(int argc, char **argv) {
     }
 
     }
+  } else if (args.trace_given) {  // =e
+    io::CSVReader<2> in(args.trace_arg);
+    double index; double rate;
+    while(in.read_row(index, rate)){
+      I("%f, %f", index, rate)
+    }
+    
   } else if (args.scan_given) {
     char *min_ptr = strtok(args.scan_arg, ":");
     char *max_ptr = strtok(NULL, ":");

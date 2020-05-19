@@ -8,3 +8,4 @@ cmdline.cc
 cmdline.h
 gtest
 config.h
+.vscode/

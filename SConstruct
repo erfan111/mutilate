@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 import os
 import sys
 
@@ -16,19 +16,19 @@ if sys.platform == 'darwin':
 conf = env.Configure(config_h = "config.h")
 conf.Define("__STDC_FORMAT_MACROS")
 if not conf.CheckCXX():
-    print "A compiler with C++11 support is required."
+    print("A compiler with C++11 support is required.")
     Exit(1)
-print "Checking for gengetopt...",
+print("Checking for gengetopt...",)
 if env.Execute("@which gengetopt &> /dev/null"):
-    print "not found (required)"
+    print("not found (required)")
     Exit(1)
-else: print "found"
+else: print("found")
 if not conf.CheckLibWithHeader("event", "event2/event.h", "C++"):
-    print "libevent required"
+    print("libevent required")
     Exit(1)
 conf.CheckDeclaration("EVENT_BASE_FLAG_PRECISE_TIMER", '#include <event2/event.h>', "C++")
 if not conf.CheckLibWithHeader("pthread", "pthread.h", "C++"):
-    print "pthread required"
+    print("pthread required")
     Exit(1)
 conf.CheckLib("rt", "clock_gettime", language="C++")
 conf.CheckLibWithHeader("zmq", "zmq.hpp", "C++")
