@@ -60,6 +60,55 @@ struct thread_data {
 #endif
 };
 
+// =e
+struct trace_point {
+  double index;
+  double rate;
+  int conns;
+};
+
+struct AggregateStats{
+  int total = 0;
+  int count = 0;
+  double avg = 0;
+  double min = 0;
+  double p1 = 0;
+  double p5 = 0;
+  double p10 = 0;
+  double p90 = 0;
+  double p95 = 0;
+  double p99 = 0;
+  double p999 = 0;
+};
+
+void aggregate_stats(struct AggregateStats *as, ConnectionStats cs)
+{
+  as->total += cs.get_sampler.total();
+  as->count++;
+  as->avg += cs.get_average() * (cs.get_sampler.total());
+  as->p1 += cs.get_nth(1) * (cs.get_sampler.total());
+  as->p5 += cs.get_nth(5) * (cs.get_sampler.total());
+  as->p10 += cs.get_nth(10) * (cs.get_sampler.total());
+  as->p90 += cs.get_nth(90) * (cs.get_sampler.total());
+  as->p95 += cs.get_nth(95) * (cs.get_sampler.total());
+  as->p99 += cs.get_nth(99) * (cs.get_sampler.total());
+  as->p999 += cs.get_nth(999) * (cs.get_sampler.total());
+  // I("%f-%f-%f-%f", as->p1, as->p90, as->p99, as->p999);
+}
+
+void print_aggregate_stats(struct AggregateStats *as)
+{
+  printf("TYPE\t\t%7s %7s %7s %7s %7s %7s %7s %7s \n",
+           "avg", "1st", "5th", "10th",
+           "90th", "95th", "99th", "99.9th\n");
+  printf("Aggregate\t%7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f\n\n\n",
+           as->avg / as->total,
+           as->p1 / as->total, as->p5 / as->total,
+           as->p10 / as->total, as->p90 / as->total,
+           as->p90 / as->total, as->p99 / as->total,
+           as->p999 / as->total);
+}
+
 // struct evdns_base *evdns;
 
 pthread_barrier_t barrier;
@@ -546,11 +595,46 @@ int main(int argc, char **argv) {
 
     }
   } else if (args.trace_given) {  // =e
-    io::CSVReader<2> in(args.trace_arg);
+    int time = 0, conns = 0;
+    io::CSVReader<3> in(args.trace_arg);
+    std::vector<struct trace_point> tracepoints;
+    struct AggregateStats as;
     double index; double rate;
-    while(in.read_row(index, rate)){
-      I("%f, %f", index, rate)
+    while(in.read_row(index, rate, conns)){
+      struct trace_point tp;
+      tp.index = index;
+      tp.rate = rate;
+      tp.conns = conns;
+      if(conns % args.threads_arg)
+        DIE("Connections must be multiple of # threads %d", conns);
+      tracepoints.push_back(tp);
     }
+    printf("%-7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %7s %8s %8s\n",
+           "#type", "avg", "min", "1st", "5th", "10th",
+           "90th", "95th", "99th", "99.9th", "99.99th", "QPS", "time");
+    for (unsigned int q = 0; q < tracepoints.size(); q++)
+    {
+      struct trace_point tp = tracepoints[q];
+      args.connections_arg = tp.conns;
+      args_to_options(&options);
+      options.qps = tp.rate;
+      options.time = (int) tp.index - time;
+      time = (int) tp.index;
+      options.lambda = (double) options.qps / (double) options.lambda_denom * args.lambda_mul_arg;
+      //      options.lambda = (double) options.qps / options.connections /
+      //        args.server_given /
+      //        (args.threads_arg < 1 ? 1 : args.threads_arg);
+
+      stats = ConnectionStats();
+
+      go(servers, options, stats);
+      stats.print_stats("read", stats.get_sampler, false);
+      printf(" %8.1f", stats.get_qps());
+      printf(" %f\n", tp.index);
+      aggregate_stats(&as, stats);
+    }
+    printf("========================\n");
+    print_aggregate_stats(&as);
     
   } else if (args.scan_given) {
     char *min_ptr = strtok(args.scan_arg, ":");
@@ -589,7 +673,7 @@ int main(int argc, char **argv) {
     go(servers, options, stats);
   }
 
-  if (!args.scan_given && !args.loadonly_given) {
+  if (!args.scan_given && !args.loadonly_given && !args.trace_given) {
     stats.print_header();
     stats.print_stats("read",   stats.get_sampler);
     stats.print_stats("update", stats.set_sampler);

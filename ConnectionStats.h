@@ -86,6 +86,10 @@ class ConnectionStats {
     // FIXME: nth across gets & sets?
     return get_sampler.get_nth(nth);
   }
+
+  double get_average() {
+    return get_sampler.average();
+  }
 #endif
 
   void accumulate(const ConnectionStats &cs) {
@@ -196,8 +200,8 @@ class ConnectionStats {
   void print_stats(const char *tag, LogHistogramSampler &sampler,
                    bool newline = true) {
     if (sampler.total() == 0) {
-      printf("%-7s %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f",
-             tag, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+      printf("%-7s %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f",
+             tag, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
       if (newline) printf("\n");
       return;
     }
