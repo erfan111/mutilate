@@ -419,7 +419,6 @@ void Connection::drive_write_machine(double now) {
         }
         return;
       }
-      D("FFFFFFFF");
       write_state = ISSUING;
       break;
 
@@ -536,4 +535,3 @@ void timer_cb(evutil_socket_t fd, short what, void *ptr) {
   Connection* conn = (Connection*) ptr;
   conn->timer_callback();
 }
-

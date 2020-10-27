@@ -39,7 +39,18 @@ public:
   ~Connection();
 
   // =e
+  enum read_state_enum {
+    INIT_READ,
+    CONN_SETUP,
+    LOADING,
+    IDLE,
+    WAITING_FOR_GET,
+    WAITING_FOR_SET,
+    MAX_READ_STATE,
+  };
+  
   int cid;
+  read_state_enum read_state;
   //
 
   double start_time; // Time when this connection began operations.
@@ -74,16 +85,6 @@ private:
   double last_rx;      // Used to moderate transmission rate.
   double last_tx;
 
-  enum read_state_enum {
-    INIT_READ,
-    CONN_SETUP,
-    LOADING,
-    IDLE,
-    WAITING_FOR_GET,
-    WAITING_FOR_SET,
-    MAX_READ_STATE,
-  };
-
   enum write_state_enum {
     INIT_WRITE,
     ISSUING,
@@ -92,7 +93,7 @@ private:
     MAX_WRITE_STATE,
   };
 
-  read_state_enum read_state;
+  
   write_state_enum write_state;
 
   // Parameters to track progress of the data loader.

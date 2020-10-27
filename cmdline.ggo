@@ -63,7 +63,10 @@ option "scan" - "Scan latency across QPS rates from min to max."
        string typestr="min:max:step"
 
 text "\nExtended options:"
-option "mode" m "Server protocol mode {memcahced or tcp}" string default="memcached"
+option "mode" m "Server protocol mode {memcahced or tcp or udp}" string default="memcached"
+option "trace_ia" - "Trace interarrival distribution file" string
+option "trace_size" - "Trace size distribution file" string
+option "trace_multiplier" - "Trace interarrival multiplier" int default="1"
 
 text "\nAgent-mode options:"
 option "agentmode" A "Run client in agent mode."

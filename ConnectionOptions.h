@@ -45,6 +45,11 @@ typedef struct {
 
   // =e
   bool tcp;
+  bool udp;
+  int trace_ia[101];
+  int trace_size[101];
+  int trace_mode;
+  int trace_multiplier;
   //
 } options_t;
 

@@ -208,6 +208,33 @@ private:
   double max;
 };
 
+class TraceIAGen : public Generator {
+public:
+  TraceIAGen(int *ia) {
+    ia_dist = ia;
+    D("TraceIAGen()");
+  }
+
+  virtual double generate(double U = -1.0) {
+    return ia_dist[(int) (drand48() * 100)];
+  }
+private:
+    int *ia_dist;
+};
+
+class TraceSizeGen : public Generator {
+public:
+  int *size_dist;
+  TraceSizeGen(int *size) {
+    size_dist = size;
+    D("TraceSizeGen()");
+  }
+
+  virtual double generate() {
+    return size_dist[(int) (drand48() * 100)];
+  }
+};
+
 Generator* createGenerator(std::string str);
 Generator* createFacebookKey();
 Generator* createFacebookValue();
